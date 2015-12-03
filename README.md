@@ -5,6 +5,9 @@ This tool was forked from
 [agrbin](https://github.com/agrbin)'s excellent [svgtex](https://github.com/agrbin/svgtex) 
 tool.
 
+It is deployed on the PMC site at 
+[http://www.ncbi.nlm.nih.gov/pmc/utils/math](http://www.ncbi.nlm.nih.gov/pmc/utils/math).
+
 It uses MathJax and PhantomJS to render mathematical formulas into SVGs, on the server,
 with minimum overhead. It runs as an HTTP service, with a simple interface.
 
