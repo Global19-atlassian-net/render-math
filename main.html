@@ -4,6 +4,12 @@
 -->
 <html>
   <head>
+    <script>
+      var loc = window.location.toString();
+      if (loc.substr(-1) != '/') {
+        window.location = loc + '/';
+      }
+    </script>
     <script type='text/javascript'
             src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.js'></script>
     <script type='text/javascript'
