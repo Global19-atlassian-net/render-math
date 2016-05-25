@@ -6,7 +6,7 @@ This tool was forked from
 tool.
 
 It is deployed on the PMC site at 
-[http://www.ncbi.nlm.nih.gov/pmc/utils/math](http://www.ncbi.nlm.nih.gov/pmc/utils/math).
+[https://www.ncbi.nlm.nih.gov/pmc/utils/math](https://www.ncbi.nlm.nih.gov/pmc/utils/math).
 
 It uses MathJax and PhantomJS to render mathematical formulas into SVGs, on the server,
 with minimum overhead. It runs as an HTTP service, with a simple interface.
@@ -111,15 +111,15 @@ Loading MathJax
 ---------------
 
 By default, this loads MathJax from the MathJax CDN, with this URL:
-*http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_SVG*.
+*https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_SVG*.
 
 You could use the `--mathjax` command-line option to tell it to load MathJax from
 some alternate location, or to use some alternate configuration file.  For example,
 the following uses the same MathJax deployment as is used in PMC:
 
 ```
-phantomjs main.js --mathjax=http://www.ncbi.nlm.nih.gov/core/mathjax/2.5/MathJax.js?\
-config=http://www.ncbi.nlm.nih.gov/staff/maloneyc/mjconfig/mathjax-config-classic.3.4.1.js
+phantomjs main.js --mathjax=https://www.ncbi.nlm.nih.gov/core/mathjax/2.5/MathJax.js?\
+config=https://www.ncbi.nlm.nih.gov/staff/maloneyc/mjconfig/mathjax-config-classic.3.4.1.js
 ```
 
 [@FIXME: the above URL should be adjusted to use the URL of the released version of the config

@@ -28,7 +28,7 @@ var usage =
 var port = 16000;
 var requests_to_serve = -1;
 var engine_page = 'engine.html';    // engine page template, before $mathjax_url is substituted
-var mathjax_url = 'http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_SVG';
+var mathjax_url = 'https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_SVG';
 var debug = false;
 
 // Parse command-line options.  This keeps track of which one we are on
@@ -548,11 +548,11 @@ function client_table(resp, query) {
   // But, inside phantomjs, if you try to use host-relative URL for the mathjax config
   // file, it fails. So, we've configured our servers to start phantomjs using the
   // full URLs of the config file, including domain, like this:
-  //    phantomjs main.js --mathjax=http://www.ncbi.nlm.nih.gov/core/mathjax/2.5/MathJax.js?\
-  //        config=http://www.ncbi.nlm.nih.gov/corehtml/pmc/js/mathjax-config-classic.3.4.1.js
+  //    phantomjs main.js --mathjax=https://www.ncbi.nlm.nih.gov/core/mathjax/2.5/MathJax.js?\
+  //        config=https://www.ncbi.nlm.nih.gov/corehtml/pmc/js/mathjax-config-classic.3.4.1.js
   // But that means that, when setting the script tag in the page returned to the client,
   // we have to strip out the schema and domain from the config file URL.
-  var re = /(http:\/\/([a-z]+)\.ncbi\.nlm\.nih\.gov[^?]*)\?config=http:\/\/([a-z]+)\.ncbi\.nlm\.nih\.gov(.*)/;
+  var re = /(https?:\/\/([a-z]+)\.ncbi\.nlm\.nih\.gov[^?]*)\?config=https?:\/\/([a-z]+)\.ncbi\.nlm\.nih\.gov(.*)/;
   var m = mathjax_url.match(re);
   if (m && m[2] == m[3]) {
     mathjax_url = m[1] + "?config=" + m[4];
