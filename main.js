@@ -388,8 +388,7 @@ function parse_request(req) {
                       q.match(mml_stag) ? 'mml' : 'latex';
 
     // PMC-29429 - filter processing instructions out of MML equations
-    query.q = q = q.replace(
-      /(<([A-Za-z_]+:)?math[\s\S]*?>[\s\S]*?)<\?[\s\S]*?\?>([\S\s]*?<\/([A-Za-z_]+:)?math>)/g, '$1$3');
+    query.q = q = q.replace(/<\?[^?]+?\?>/g, '');
     //console.log('Final equation is: ', q);
   }
 
