@@ -1,5 +1,5 @@
 // This is the main phantomjs program that runs on the server. It loads the engine.html
-// page inside the headless browser, and then starts up an HTTP service that listens for 
+// page inside the headless browser, and then starts up an HTTP service that listens for
 // requests.
 
 // Version
@@ -229,7 +229,7 @@ page.onCallback = function(data) {
 // or a valid request, e.g.
 //   { num: 5, in_format: 'latex', latex_style: 'text', q: 'n^2', width: '500' }
 //   { num: 5, in_format: 'mml', q: '<math>...</math>', width: '500' }
-//   { num: 5, in_format: 'jats', 
+//   { num: 5, in_format: 'jats',
 //     q: [{id: 'M1', format: 'latex', latex_style: 'display', q: 'n^2'}, {...}], width: '500' }
 
 function parse_request(req) {
@@ -379,13 +379,17 @@ function parse_request(req) {
   if (query.in_format == 'auto') {
     // We assume that any XML tag that has the name 'math',
     // regardless of whether or not it is in a namespace, is mathml.
-    // Also look for the opening tag '<article', to determine whether or not this is 
+    // Also look for the opening tag '<article', to determine whether or not this is
     // JATS.  If it's not JATS, and there are no MathML opening tags, then assume it
     // is LaTeX.
     var jats_stag = new RegExp('<article\\s+');
     var mml_stag = new RegExp('<([A-Za-z_]+:)?math', 'm');
     query.in_format = q.match(jats_stag) ? 'jats' :
                       q.match(mml_stag) ? 'mml' : 'latex';
+
+    // PMC-29429 - filter processing instructions out of MML equations
+    query.q = q = q.replace(/<\?[^?]+?\?>/g, '');
+    //console.log('Final equation is: ', q);
   }
 
 
@@ -419,7 +423,7 @@ function listenLoop(engine_status) {
     try {
       var query = parse_request(req);
       var request_num = query.num;
-      log(request_num + ': ' + 
+      log(request_num + ': ' +
           "received: " + req.method + " " +
           req.url.substr(0, 70) + (req.url.length > 70 ? "..." : ""));
       resp.setHeader("X-XSS-Protection", 0);
@@ -482,7 +486,7 @@ function listenLoop(engine_status) {
           //  'mml': 'application/mathml+xml; charset=utf-8',
           //  'nxml': 'application/jats+xml; charset=utf-8'
           };
-          var media_type = media_types[extension] ? media_types[extension] 
+          var media_type = media_types[extension] ? media_types[extension]
                                                   : 'text/plain; charset=utf-8';
           resp.setHeader('Content-type', media_type);
 
@@ -575,14 +579,14 @@ function client_table(resp, query) {
   });
   resp_page = resp_page.replace("<!-- sources -->", sources);
 
-  
+
   //var resp_page = client_template.start + rows + client_template.end;
   resp.setHeader('Content-type', 'text/html; charset=utf-8');
   resp.write(resp_page);
   resp.close();
 }
 
-// Make one row of the table 
+// Make one row of the table
 function make_row(f, width) {
   var format = f.format == 'mml' ? "MathML" : "LaTeX, " + f.latex_style;
 
@@ -602,7 +606,7 @@ function make_row(f, width) {
 }
 
 function make_source(f) {
-  return "<div data-rid='" + f.id + "-div' data-format='" + f.format + "'>" + 
+  return "<div data-rid='" + f.id + "-div' data-format='" + f.format + "'>" +
          xml_escape(f.q) +
          "</div>\n";
 }
@@ -648,5 +652,3 @@ page.open('engine.html', function (status) {
   });
 });
 */
-
-
