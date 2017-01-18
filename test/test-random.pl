@@ -1,3 +1,4 @@
+#!/usr/bin/env perl
 # This POSTs a bunch of random data to the service, to make sure
 # it doesn't crash.
 
