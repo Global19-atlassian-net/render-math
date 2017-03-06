@@ -7,6 +7,9 @@
 use strict;
 use warnings;
 
+use FindBin;
+use local::lib "$FindBin::RealBin/local";
+
 use open ':encoding(utf8)';
 binmode STDOUT, ':utf8';
 
@@ -151,7 +154,7 @@ sub test_one {
     }
 
     my $expected_code = $expected->{code} || 200;
-    is ($response->code(), $expected_code, 
+    is ($response->code(), $expected_code,
         "Test $test_name: got expected response code $expected_code");
 
     #ok (!$response->is_error(), "Good response for $filename") or
@@ -195,4 +198,3 @@ sub string_start {
     $ss =~ s/\n/\\n/gs;
     return $ss . (length($s) > 100 ? "..." : "");
 }
-
