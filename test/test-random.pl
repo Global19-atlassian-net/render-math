@@ -3,6 +3,10 @@
 # it doesn't crash.
 
 use strict;
+use warnings;
+
+use FindBin;
+use local::lib "$FindBin::RealBin/local";
 
 for(;;) {
     # The length of the post string will be a random number from 0 - 100

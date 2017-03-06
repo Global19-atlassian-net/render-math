@@ -1,20 +1,21 @@
 render-math
 ===========
 
-This tool was forked from 
-[agrbin](https://github.com/agrbin)'s excellent [svgtex](https://github.com/agrbin/svgtex) 
-tool.
+This tool was forked from
+[agrbin](https://github.com/agrbin)'s excellent
+[svgtex](https://github.com/agrbin/svgtex) tool.
 
-It is deployed on the PMC site at 
+It is deployed on the PMC site at
 [https://www.ncbi.nlm.nih.gov/pmc/utils/math](https://www.ncbi.nlm.nih.gov/pmc/utils/math).
 
-It uses MathJax and PhantomJS to render mathematical formulas into SVGs, on the server,
-with minimum overhead. It runs as an HTTP service, with a simple interface.
+It uses MathJax and PhantomJS to render mathematical formulas into SVGs, on
+the server, with minimum overhead. It runs as an HTTP service, with a simple
+interface.
 
 To run it, first, you'll need to install the main dependency:
-[phantom.js](http://phantomjs.org/). The exact instructions will depend on the type
-of machine you have, and it is quite easy -- follow the instructions on that site's
-download page.
+[phantom.js](http://phantomjs.org/). The exact instructions will depend on
+the type of machine you have, and it is quite easy -- follow the instructions
+on that site's download page.
 
 Next, clone this repository, and `cd` into the project directory.
 Then, start the server:
@@ -26,8 +27,8 @@ $ phantomjs main.js
 Point your browser at http://localhost:16000 for a test form.
 ```
 
-Try it out by pointing your browser at http://localhost:16000/, and using the test form
-to enter an equation in either TeX or MathML. For example,
+Try it out by pointing your browser at http://localhost:16000/, and using the
+test form to enter an equation in either TeX or MathML. For example,
 
 * TeX:  `n^2`
 * MathML: `<math><mfrac><mi>y</mi><mn>2</mn></mfrac></math>`
@@ -51,80 +52,112 @@ Two services in one
 
 This is really two services in one:
 
-1. When you provide it with a single formula in either LaTeX or MathML format, then 
-  that formula will be rendered on the server, and the results will be returned as 
-  a pure SVG resource.
-2. When you provide it with a JATS file that contains one or more equations, then 
-  all of the formulas will be extracted from that JATS file, and sent back to your 
-  browser encapsulated in an HTML table. Your browser will then use MathJax to render 
-  the formulas locally.
+1. When you provide it with a single formula in either LaTeX or MathML
+  format, then that formula will be rendered on the server, and the results
+  will be returned as a pure SVG resource.
+2. When you provide it with a JATS file that contains one or more equations,
+  then all of the formulas will be extracted from that JATS file, and sent
+  back to your browser encapsulated in an HTML table. Your browser will
+  then use MathJax to render the formulas locally.
 
 
 Service API
 -----------
 
-Make requests to the service with either GET or POST. When making POST requests, the
-parameters must be encoded as x-www-form-urlencoded.
+Make requests to the service with either GET or POST. When making POST
+requests, the parameters must be encoded as x-www-form-urlencoded.
 
 The parameters this service understands are:
 
 * `q` - The content of the math formula or JATS file
-* `in-format` - One of 'latex', 'mml', 'jats', or 'auto'. The default is 'auto'.
-* `latex-style` - If the input is a LaTeX formula, this specifies whether it should
-  be rendered in text (inline) or display (block) mode
+* `in-format` - One of 'latex', 'mml', 'jats', or 'auto'. The default is
+  'auto'.
+* `latex-style` - If the input is a LaTeX formula, this specifies whether
+  it should be rendered in text (inline) or display (block) mode
 * `width` - Maximum width for the equations
 
-Note that MathML can be provided with a namespace prefix or without one. But,
-if it is provided with a namespace prefix, then that prefix ***must be "mml:"***. 
-No other namespace prefix will work.
+Note that MathML can be provided with a namespace prefix or without one.
+But, if it is provided with a namespace prefix, then that prefix
+***must be "mml:"***. No other namespace prefix will work.
 
 
-Example files and testing
--------------------------
+Example files
+-------------
 
-To see the command line options that are available when you start the service, enter
+To see the command line options that are available when you start the service,
+enter
 
     phantomjs main.js --help
 
-Example input files are included in the *examples* subdirectory. Metadata about these
-examples is in the *examples.yaml* file.
+Example input files are included in the *examples* subdirectory. Metadata
+about these examples is in the *examples.yaml* file.
 
-Test files are in the *test* subdirectory.
+Testing
+-------
 
-The Perl script *test.pl* runs automated tests against the service, using tests defined
-in the *tests.yaml* file. Most of those tests use the example files 
-for the value of the `q` parameter (the main input).
+Test scripts and data files are in the *test* subdirectory.
 
-During development or maintenance, you can test the processing engine by loading the
-bench.html in a browser.  Then, send a LaTeX equation to the engine to process:
+The Perl script *test.pl* runs automated tests against the service, using
+tests defined in the *tests.yaml* file. Note that many of these tests use
+the example files from the *examples* subdirectory (see above).
+
+To run the tests, first you'll need to create a local Perl environment.
+These instructions assume you're using `bash`. You should only have to
+to this once:
+
+```
+cd test
+./setup.sh
+```
+
+Then, whenever you want to run the tests, for each new bash shell,
+activate this local Perl environment with:
+
+```
+. ./activate.sh
+```
+
+Then, start the RenderMath service in one terminal, and run the tests
+against it from another terminal, with:
+
+```
+./test.pl
+```
+
+Use the `--help` switch for usage information.
+
+
+Development
+-----------
+
+During development or maintenance, you can test the processing engine by
+loading the bench.html in a browser.  Then, send a LaTeX equation to the
+engine to process:
 
 ```
 engine.process({q: 'n', 'in_format': 'latex'}, function(q, svg) {console.log(q, svg);});
 ```
 
-Test the JATS parsing routines by loading parse_jats.html in a browser, and looking
-at the JavaScript console. These routines are encapsulated in the parse_jats.js 
-module.
+Test the JATS parsing routines by loading parse_jats.html in a browser, and
+looking at the JavaScript console. These routines are encapsulated in the
+parse_jats.js module.
 
 
-Loading MathJax
----------------
+MathJax and its config file
+---------------------------
 
 By default, this loads MathJax from the MathJax CDN, with this URL:
 *https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_SVG*.
 
-You could use the `--mathjax` command-line option to tell it to load MathJax from
-some alternate location, or to use some alternate configuration file.  For example,
-the following uses the same MathJax deployment as is used in PMC:
+You could use the `--mathjax` command-line option to tell it to load MathJax
+from some alternate location, or to use some alternate configuration file.
+For example, the following uses the same MathJax deployment as is used in
+PMC:
 
 ```
 phantomjs main.js --mathjax=https://www.ncbi.nlm.nih.gov/core/mathjax/2.5/MathJax.js?\
-config=https://www.ncbi.nlm.nih.gov/staff/maloneyc/mjconfig/mathjax-config-classic.3.4.1.js
+config=https://www.ncbi.nlm.nih.gov/corehtml/pmc/js/mathjax-config-classic.3.4.1.js
 ```
-
-[@FIXME: the above URL should be adjusted to use the URL of the released version of the config
-file, once tex-with-mathjax is deployed.]
-
 
 Release procedure
 -----------------
@@ -139,22 +172,32 @@ Possible future enhancements
 ----------------------------
 
 - Allow POST in other formats.  How about JSON?
-- Implement uploading via "PMCID (from PMC3 by default or PMC3QA on selection)", and 
-  have all of the math displayed on the page.
+- Implement uploading via "PMCID (from PMC3 by default or PMC3QA on
+  selection)", and have all of the math displayed on the page.
 
 License and public domain notice
 --------------------------------
 
-Portions of this software from the original [agrbin/svgtex](https://github.com/agrbin/svgtex) project are
-licensed under the MIT license, as described in LICENSE.txt.
+Portions of this software from the original
+[agrbin/svgtex](https://github.com/agrbin/svgtex) project are licensed
+under the MIT license, as described in LICENSE.txt.
 
 Code that was added by government employees or contractors working for the
-National Center for Biotechnology Information (NCBI) is released into the public
-domain, as specified below.
+National Center for Biotechnology Information (NCBI) is released into the
+public domain, as specified below.
 
-> This software is a "United States Government Work" under the terms of the United States Copyright Act. It was written as part of the authors' official duties as United States Government employees and thus cannot be copyrighted. This software is freely available to the public for use. The National Library of Medicine and the U.S. Government have not placed any restriction on its use or reproduction.
+> This software is a "United States Government Work" under the terms of the
+> United States Copyright Act. It was written as part of the authors' official
+> duties as United States Government employees and thus cannot be copyrighted.
+> This software is freely available to the public for use. The National
+> Library of Medicine and the U.S. Government have not placed any restriction
+> on its use or reproduction.
 >
-> Although all reasonable efforts have been taken to ensure the accuracy and reliability of the software and data, the NLM and the U.S. Government do not and cannot warrant the performance or results that may be obtained by using this software or data. The NLM and the U.S. Government disclaim all warranties, express or implied, including warranties of performance, merchantability or fitness for any particular purpose.
-> 
+> Although all reasonable efforts have been taken to ensure the accuracy and
+> reliability of the software and data, the NLM and the U.S. Government do
+> not and cannot warrant the performance or results that may be obtained by
+> using this software or data. The NLM and the U.S. Government disclaim all
+> warranties, express or implied, including warranties of performance,
+> merchantability or fitness for any particular purpose.
+>
 > Please cite NCBI in any work or product based on this material.
-

@@ -386,12 +386,14 @@ function parse_request(req) {
     var mml_stag = new RegExp('<([A-Za-z_]+:)?math', 'm');
     query.in_format = q.match(jats_stag) ? 'jats' :
                       q.match(mml_stag) ? 'mml' : 'latex';
-
-    // PMC-29429 - filter processing instructions out of MML equations
-    query.q = q = q.replace(/<\?[^?]+?\?>/g, '');
-    //console.log('Final equation is: ', q);
   }
 
+  // PI-573 - fix this patch so that it applies when in format is either auto
+  // or mml (at this point in the flow; `auto` has been resolved.)
+  if (query.in_format == 'mml') {
+    // PMC-29429 - filter processing instructions out of MML equations
+    query.q = q = q.replace(/<\?[^?]+?\?>/g, '');
+  }
 
   // Parse JATS files
   if (query.in_format == 'jats') {

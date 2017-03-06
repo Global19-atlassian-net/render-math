@@ -4,7 +4,7 @@
 # request. The keys under request are:
 #   - method: HTTP method (GET, POST, etc.). Default is POST.
 #   - path: the path portion of the URL (defaults to '/')
-#   - example: that example file will be read, and stuffed into the `q` parameter. 
+#   - example: that example file will be read, and stuffed into the `q` parameter.
 #   - <anything else>: used as a request parameter
 # Defaults:
 #   request.method: POST
@@ -41,7 +41,7 @@
 - name: bad-static
   request:
     method: GET
-    path: /examples/foo.txt 
+    path: /examples/foo.txt
   expected:
     code: 404
     content-type: 'text/plain; charset=utf-8'
@@ -167,6 +167,22 @@
     code: 400
     content-type: 'text/plain; charset=utf-8'
     content-contains: "MathML Jax - parse error"
+
+# PMC-29429/PI-573 - test that MathJax doesn't choke on processing instructions
+- name: pi-mml-auto
+  request:
+    q: "<mml:math id='M3'><?use-mml?><mml:mrow><mml:mi>i</mml:mi></mml:mrow></mml:math>"
+    in-format: auto
+  expected:
+    format: svg
+
+- name: pi-mml-explicit
+  request:
+    q: "<mml:math id='M3'><?use-mml?><mml:mrow><mml:mi>i</mml:mi></mml:mrow></mml:math>"
+    in-format: mml
+  expected:
+    format: svg
+
 
 # JATS file without any equations
 - name: jats-no-equations
@@ -294,109 +310,108 @@
     in-format: mml
   expected:
     format: svg
-  
+
 - name: cauchy-schwarz
   request:
     example: cauchy-schwarz
     in-format: latex
   expected:
     format: svg
-  
+
 - name: christoffel-symbols
   request:
     example: christoffel-symbols
     in-format: mml
   expected:
     format: svg
-  
+
 - name: coins
   request:
     example: coins
     in-format: latex
   expected:
     format: svg
-  
+
 - name: cosines
   request:
     example: cosines
     in-format: mml
   expected:
     format: svg
-  
+
 - name: cross-product
   request:
     example: cross-product
     in-format: latex
   expected:
     format: svg
-  
+
 - name: curl-vector-field
   request:
     example: curl-vector-field
     in-format: mml
   expected:
     format: svg
-  
+
 - name: gauss-divergence
   request:
     example: gauss-divergence
     in-format: mml
   expected:
     format: svg
-  
+
 - name: sum
   request:
     example: sum
     in-format: latex
   expected:
     format: svg
-  
+
 - name: sum-displaystyle
   request:
     example: sum-displaystyle
     in-format: latex
   expected:
     format: svg
-  
+
 - name: lorentz
   request:
     example: lorentz
     in-format: latex
   expected:
     format: svg
-  
+
 - name: maxwell
   request:
     example: maxwell
     in-format: latex
   expected:
     format: svg
-  
+
 - name: quadratic
   request:
     example: quadratic
     in-format: mml
   expected:
     format: svg
-  
+
 - name: ramanujan
   request:
     example: ramanujan
     in-format: latex
   expected:
     format: svg
-  
+
 - name: rogers-rmanujan
   request:
     example: rogers-rmanujan
     in-format: latex
   expected:
     format: svg
-  
+
 - name: standard-deviation
   request:
     example: standard-deviation
     in-format: mml
   expected:
     format: svg
-  
