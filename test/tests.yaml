@@ -168,7 +168,7 @@
     content-type: 'text/plain; charset=utf-8'
     content-contains: "MathML Jax - parse error"
 
-# PMC-29429/PI-573 - test removing PI from MML
+# PMC-29429/PI-573 - test that MathJax doesn't choke on processing instructions
 - name: pi-mml-auto
   request:
     q: "<mml:math id='M3'><?use-mml?><mml:mrow><mml:mi>i</mml:mi></mml:mrow></mml:math>"
