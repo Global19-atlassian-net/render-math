@@ -1,1 +1,4 @@
+requires 'perl', '5.16.2';
 requires 'YAML', "1.23";
+requires 'List::MoreUtils';
+requires 'Carp::Assert';

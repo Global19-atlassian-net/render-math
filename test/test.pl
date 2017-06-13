@@ -9,7 +9,7 @@ use warnings;
 
 use FindBin;
 use local::lib "$FindBin::RealBin/local";
-
+use Carp::Assert;
 use open ':encoding(utf8)';
 binmode STDOUT, ':utf8';
 
@@ -20,6 +20,10 @@ use URI::Encode qw(uri_encode);
 #use HTTP::Request::Common qw{ POST };
 use Getopt::Long;
 use Data::Dumper;
+use List::Util qw(any);
+use List::MoreUtils qw(uniq);
+
+my $debug = 1;
 
 my $examples_dir = '../examples';
 my $default_service_url = 'http://localhost:16000';
@@ -30,15 +34,17 @@ my $opts_ok = GetOptions(\%options,
     'verbose',
     'writesvg',
     'url=s',
+    #'halt',
 );
 if (!$opts_ok || $options{help}) {
 
     print <<USAGE;
-Usage:  test.pl [options] [<test_name>]
+Usage:  test.pl [options] [<tests>]
 Runs tests against the RenderMath server.  Make sure the server is up and running
 at the appropriate URL.
-If no <test_name> is given, then all the tests are run. Test names are defined in
-tests.yaml
+If no <tests> arguments are given, then all the tests are run. Tests can be
+specified by number (e.g. `44`), exact name (`bad-latex`), or regular expression
+(`/good/`).
 
 Options
 
@@ -47,24 +53,19 @@ Options
 --writesvg - write the svg results from each test case to a file
 --url=[url] - the URL of the service; defaults to $default_service_url.
 USAGE
+# FIXME: implement this:
+#--halt - halt on error; default is to run all tests regardless.
+
 
     exit !$opts_ok;
 }
 my $verbose = $options{verbose} || 0;
 my $writesvg = $options{writesvg} || 0;
 my $url = $options{url} || $default_service_url;
+my $halt_on_error = $options{halt} || 0;
 
-my $ua      = LWP::UserAgent->new();
+my $ua = LWP::UserAgent->new();
 print "Testing service at $url\n";
-
-# Which test(s) should we run?
-my $run_all = 1;      # by default, run all tests
-my %run_tests = ();   # Specific tests to run
-while (my $arg = shift @ARGV) {
-    $run_all = 0;
-    $run_tests{$arg} = 1;
-}
-
 
 
 # Read in the list of example files
@@ -78,22 +79,105 @@ my %examples_by_name = map { $_->{name} => $_ } @$examples;
 #print Dumper(\%examples_by_name);
 
 # Read in the list of tests
-my $tests = Load(do {
+my @tests = @{ Load(do {
     local $/ = undef;
     my $fn = "tests.yaml";
     open my $F, "<", $fn or die "Can't read $fn";
     <$F>;
-});
-#print Dumper($tests);
+}) };
+my $num_tests = scalar @tests;
 
+# Add test number to each test object
+foreach my $test_num (0 .. $#tests) {
+    my $test = $tests[$test_num];
+    $test->{'num'} = $test_num;
+}
+print("Total number of tests defined: $num_tests\n");
+#print Dumper(\@tests) if $debug;
 
-#my @test_files = (<examples/*.tex>, <examples/*.mml>, <examples/*.html>);
+# Convert a string to a non-negative integer if it doesn't have extraneous
+# characters, otherwise returns 'NaN'.
+sub to_int {
+    my $arg = shift;
+    no warnings 'numeric';
+    my $argInt = int($arg);
+    return "$argInt" eq "$arg" ? $argInt : 'NaN';
+}
 
-# We'll run two tests for each of these files
-#plan tests => @$tests * 2;
+if ($debug) {
+    assert(to_int('3455') == 3455);
+    assert(to_int('0') == 0);
+    assert(to_int('6u') eq 'NaN');
+}
 
-foreach my $test (@$tests) {
-    if ($run_all || $run_tests{$test->{name}}) {
+# Returns a predicate function that returns true if a test matches the
+# criteria implicit in one command-line argument. There are three cases:
+# A. $arg is an integer - explicit test number
+# B. $arg is a string bracketed by slashes (e.g. `/foo/`) - regexp
+# C. $arg is any other string - match any part of the test name
+sub match_term {
+    my $arg = shift;
+
+    # integer
+    my $argInt = to_int($arg);
+    if ($argInt ne 'NaN') {
+        #print("================== match int\n");
+        return sub {
+            my $test = shift;
+            return $test->{num} == $argInt;
+        }
+    }
+
+    # If it is bracketed by slashes, then strip those off and use it
+    # as a regexp
+    if ($arg =~ s/^\/(.*)\/$/$1/) {
+        #print("================== match regexp\n");
+        return sub {
+            my $test = shift;
+            return $test->{name} =~ $arg;
+        };
+    }
+
+    # otherwise, do an substring match
+    #print("================== match substr\n");
+    return sub {
+        my $test = shift;
+        return index($test->{name}, $arg) != -1;
+    };
+}
+
+if ($debug) {
+    my $mt = match_term('2');
+    assert(&$mt( { num => 2 } ));
+    assert(! &$mt( { num => 3 } ));
+    $mt = match_term('/foo.*/');
+    assert(&$mt( { name => 'garafoobert' } ));
+    assert(! &$mt( { name => 'garafobart' } ));
+    $mt = match_term('fleegle');
+    assert(&$mt( { name => 'split fleegle boot' } ));
+    assert(! &$mt( { name => 'garfleglemons' } ));
+}
+
+# The master matcher - a function that, when given a test, determines if it
+# matches any of the criteria
+sub matcher {
+    my $args = shift;
+    if (scalar @$args == 0) {   # no args given; match all
+        return sub { return 1; };
+    }
+
+    my @matchers = map { match_term($_) } @$args;
+    return sub {
+        my $test = shift;
+        #print("  .... checking test $test->{num}\n");
+        return any { &$_($test) } @matchers;
+    };
+}
+
+my $test_matcher = matcher(\@ARGV);
+foreach my $test (@tests) {
+    #print("  .. checking test $test->{num}\n");
+    if (&$test_matcher($test)) {
         test_one($test);
     }
 }
@@ -104,7 +188,9 @@ done_testing();
 # Run one test
 sub test_one {
     my $test = shift;
+    my $test_num = $test->{num};
     my $test_name = $test->{name};
+    print("\n======== Test #$test_num: '$test_name'\n");
     my $request = $test->{request} || {};
     my $expected = $test->{expected};
 
@@ -185,7 +271,6 @@ sub test_one {
         close $svg_file;
     }
 }
-
 
 
 
